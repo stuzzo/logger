@@ -1,0 +1,19 @@
+{
+    "name": "stuzzo/logger",
+    "description": "Monolog wrapper that extends handlers and processors to add further informations",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["log", "logging"],
+    "require": {
+        "monolog/monolog": "~1.22"
+    },
+    "autoload": {
+        "psr-4": {"Logger\\": "src/Logger"}
+    },
+    "authors": [
+        {
+            "name": "Alfredo -stuzzo- Aiello",
+            "email": "stuzzo@gmail.com"
+        }
+    ]
+}
