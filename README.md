@@ -1,27 +1,20 @@
-# Logger - Extends Monolog handlers and processors [![Build Status](https://img.shields.io/travis/Seldaek/monolog.svg)](https://travis-ci.org/Seldaek/monolog)
+# Monolog Extender - Extends Monolog handlers and processors
 
-[![Total Downloads](https://img.shields.io/packagist/dt/monolog/monolog.svg)](https://packagist.org/packages/monolog/monolog)
-[![Latest Stable Version](https://img.shields.io/packagist/v/monolog/monolog.svg)](https://packagist.org/packages/monolog/monolog)
-[![Reference Status](https://www.versioneye.com/php/monolog:monolog/reference_badge.svg)](https://www.versioneye.com/php/monolog:monolog/references)
-
+[![Total Downloads](https://img.shields.io/packagist/dt/stuzzo/monolog-extender.svg)](https://packagist.org/packages/stuzzo/logger)
+[![Latest Stable Version](https://img.shields.io/packagist/v/stuzzo/logger.svg)](https://packagist.org/packages/stuzzo/logger)
 
 Monolog sends your logs to files, sockets, inboxes, databases and various
-web services. See the complete list of handlers below. Special handlers
-allow you to build advanced logging strategies.
+web services. [See the complete reference](https://github.com/Seldaek/monolog)
 
-This library implements the [PSR-3](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md)
-interface that you can type-hint against in your own libraries to keep
-a maximum of interoperability. You can also use it in your applications to
-make sure you can always use another compatible logger at a later time.
-As of 1.11.0 Monolog public APIs will also accept PSR-3 log levels.
-Internally Monolog still uses its own level scheme since it predates PSR-3.
+This library extends some Monolog's handlers and processors adding some informations such as the data or the cookies 
+inside the request.
 
 ## Installation
 
 Install the latest version with
 
 ```bash
-$ composer require stuzzo/logger
+$ composer require stuzzo/monolog-extender
 ```
 
 ## Basic Usage
@@ -43,21 +36,15 @@ $log->addError('Bar');
 
 ## Documentation
 
-- [Usage Instructions](doc/01-usage.md)
-- [Handlers, Formatters and Processors](doc/02-handlers-formatters-processors.md)
-- [Utility classes](doc/03-utilities.md)
-- [Extending Monolog](doc/04-extending.md)
+- [Usage Instructions](doc/README.md)
+- [Monolog Handlers, Formatters and Processors](https://github.com/Seldaek/monolog/blob/master/doc/02-handlers-formatters-processors.md)
 
 ## About
 
 ### Requirements
 
-- This library works with PHP 5.3 or above, and is also tested to work with HHVM.
+- This library works with PHP 5.3 or above.
 
 ### Author
 
-Alfredo Aiello - <stuzzo@gmail.com> - <http://twitter.com/stuzzo><br />
-
-### License
-
-Monolog is licensed under the MIT License - see the `LICENSE` file for details
+Alfredo Aiello - <stuzzo@gmail.com> - <http://twitter.com/stuzzo>
