@@ -45,18 +45,6 @@ class StreamFormatter extends LineFormatter
 		}
 		
 		return $output;
-		
-		
-		$record['message'] = $message;
-		
-		$vars = $this->normalize($record);
-		foreach ($vars as $var => $val) {
-			if (false !== strpos($output, '%' . $var . '%')) {
-				$output = str_replace('%' . $var . '%', $this->stringify($val), $output);
-			}
-		}
-		
-		return $output;
 	}
 	
 	private function addEndOfLine($string)

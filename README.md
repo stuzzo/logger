@@ -7,7 +7,7 @@ Monolog sends your logs to files, sockets, inboxes, databases and various
 web services. [See the complete reference](https://github.com/Seldaek/monolog)
 
 This library extends some Monolog's handlers and processors adding some informations such as the data or the cookies 
-inside the request.
+inside the request or the stack trace in a PHP script.
 
 ## Installation
 
@@ -21,17 +21,23 @@ $ composer require stuzzo/monolog-extender
 
 ```php
 <?php
-
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
 // create a log channel
-$log = new Logger('name');
-$log->pushHandler(new StreamHandler('path/to/your.log', Logger::WARNING));
+$log = new Logger('request');
 
-// add records to the log
-$log->addWarning('Foo');
-$log->addError('Bar');
+$handler = new StreamHandler('path/to/your.log', Logger::WARNING);
+
+$formatter = new \Stuzzo\Monolog\Formatter\StreamFormatter(null, 'Y-m-d H:i:s');
+$handler->setFormatter($formatter);
+$log->pushHandler($handler);
+
+try {
+    throw new \RuntimeException('Something happen');
+} catch (\Exception $exception) {
+    $log->critical('Error', ['exception' => $exception]);
+}
 ```
 
 ## Documentation
@@ -43,7 +49,7 @@ $log->addError('Bar');
 
 ### Requirements
 
-- This library works with PHP 5.3 or above.
+- This library works with PHP 5.5.9 or above.
 
 ### Author
 
