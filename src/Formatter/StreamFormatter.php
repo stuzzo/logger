@@ -15,12 +15,11 @@ class StreamFormatter extends LineFormatter
 	
 	public function format(array $record)
 	{
-		$this->format = '[%datetime%]' . PHP_EOL . 'CHANNEL: %channel%' . PHP_EOL . 'LEVEL: %level_name%' . PHP_EOL . "%message%\n";
-		
-		if ($record['level'] < 400) {
+		if (empty($record['level']) || $record['level'] < 400) {
 			return parent::format($record);
 		}
 		
+		$this->format = '[%datetime%]' . PHP_EOL . 'CHANNEL: %channel%' . PHP_EOL . 'LEVEL: %level_name%' . PHP_EOL . '%message%';
 		return $this->formatMessage($record);
 	}
 	
@@ -46,22 +45,6 @@ class StreamFormatter extends LineFormatter
 		
 		return $output;
 		
-		
-		$record['message'] = $message;
-		
-		$vars = $this->normalize($record);
-		foreach ($vars as $var => $val) {
-			if (false !== strpos($output, '%' . $var . '%')) {
-				$output = str_replace('%' . $var . '%', $this->stringify($val), $output);
-			}
-		}
-		
-		return $output;
-	}
-	
-	private function addEndOfLine($string)
-	{
-		return $string . PHP_EOL;
 	}
 	
 	private function addSpacesToString($string, $margin)
@@ -79,13 +62,13 @@ class StreamFormatter extends LineFormatter
 		/** @var \Exception $exceptionRecord */
 		$exceptionRecord = ExecutionService::getExceptionFromRecord($record);
 		if (false === $exceptionRecord) {
-			$message = $this->addSpacesToString(self::LOG_MESSAGE . ' -> ' . $record['message'], self::NO_MARGIN);
+			$message = $this->addSpacesToString(self::LOG_MESSAGE . ': ' . $record['message'], self::NO_MARGIN);
 		} else {
-			$startMessage = $this->addSpacesToString('PHP Exception -> ' . get_class($exceptionRecord),
+			$startMessage = $this->addSpacesToString('PHP Exception: ' . get_class($exceptionRecord),
 			                                         self::NO_MARGIN);
-			$startMessage .= $this->addSpacesToString(self::LOG_MESSAGE . ' -> ' . $exceptionRecord->getMessage(),
+			$startMessage .= $this->addSpacesToString(self::LOG_MESSAGE . ': ' . $exceptionRecord->getMessage(),
 			                                          self::NO_MARGIN);
-			$startMessage .= $this->addSpacesToString('Stack trace -> ', self::NO_MARGIN);
+			$startMessage .= $this->addSpacesToString('Stack trace: ', self::NO_MARGIN);
 			$message      = $this->addExceptionStackTraceFormattedToMessage($exceptionRecord, $startMessage);
 		}
 		
@@ -97,38 +80,38 @@ class StreamFormatter extends LineFormatter
 		/** @var \Exception $exceptionRecord */
 		$exceptionRecord = ExecutionService::getExceptionFromRecord($record);
 		if (false === $exceptionRecord) {
-			$message = $this->addSpacesToString(self::LOG_MESSAGE . ' -> ' . $record['message'], self::NO_MARGIN);
+			$message = $this->addSpacesToString(self::LOG_MESSAGE . ': ' . $record['message'], self::NO_MARGIN);
 		} else {
-			$message = $this->addSpacesToString('PHP Exception ->', self::NO_MARGIN);
+			$message = $this->addSpacesToString('PHP Exception: ', self::NO_MARGIN);
 			$message .= $this->addSpacesToString(get_class($exceptionRecord), self::MARGIN_2_SPACES);
-			$message .= $this->addSpacesToString('Message ->', self::NO_MARGIN);
+			$message .= $this->addSpacesToString('Message: ', self::NO_MARGIN);
 			$message .= $this->addSpacesToString($exceptionRecord->getMessage(), self::MARGIN_2_SPACES);
 		}
 		
 		if ($record['extra']) {
-			$message .= $this->addSpacesToString('Request ->', self::NO_MARGIN);
+			$message .= $this->addSpacesToString('Request: ', self::NO_MARGIN);
 			$message .= $this->addSpacesToString('Method: ' . $record['extra']['http_method'], self::MARGIN_2_SPACES);
 			$message .= $this->addSpacesToString('URL: ' . $record['extra']['url'], self::MARGIN_2_SPACES);
 			
-			$message .= $this->addSpacesToString('Headers ->', self::MARGIN_2_SPACES);
+			$message .= $this->addSpacesToString('Headers: ', self::MARGIN_2_SPACES);
 			foreach ($record['headers'] as $key => $value) {
 				$value   = is_array($value) ? json_encode($value) : $value;
 				$message .= $this->addSpacesToString("$key: $value", self::MARGIN_4_SPACES);
 			}
 			
-			$message .= $this->addSpacesToString('Data ->', self::MARGIN_2_SPACES);
+			$message .= $this->addSpacesToString('Data: ', self::MARGIN_2_SPACES);
 			foreach ($record['data'] as $key => $value) {
 				$value   = is_array($value) ? json_encode($value) : $value;
 				$message .= $this->addSpacesToString("$key: $value", self::MARGIN_4_SPACES);
 			}
 			
-			$message .= $this->addSpacesToString('Files ->', self::MARGIN_2_SPACES);
+			$message .= $this->addSpacesToString('Files: ', self::MARGIN_2_SPACES);
 			foreach ($record['files'] as $key => $value) {
 				$value   = is_array($value) ? json_encode($value) : $value;
 				$message .= $this->addSpacesToString("$key: $value", self::MARGIN_4_SPACES);
 			}
 			
-			$message .= $this->addSpacesToString('Stack Trace ->', self::NO_MARGIN);
+			$message .= $this->addSpacesToString('Stack Trace: ', self::NO_MARGIN);
 			$message = $this->addExceptionStackTraceFormattedToMessage($exceptionRecord, $message);
 		}
 		
