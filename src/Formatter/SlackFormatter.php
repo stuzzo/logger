@@ -14,6 +14,9 @@ class SlackFormatter extends LineFormatter
 	
 	public function format(array $record)
 	{
+		if ($record['level'] < 400) {
+			return parent::format($record);
+		}
 		return $this->formatMessage($record);
 	}
 	
@@ -37,7 +40,6 @@ class SlackFormatter extends LineFormatter
 		$record['message'] = $message;
 		
 		$vars = $this->normalize($record);
-		
 		foreach ($vars as $var => $val) {
 			if (false !== strpos($output, '%' . $var . '%')) {
 				$output = str_replace('%' . $var . '%', $this->stringify($val), $output);

@@ -1,29 +1,37 @@
 {
-    "name": "stuzzo/monolog-extender",
-    "description": "Monolog wrapper that extends handlers and processors to add further informations",
-    "type": "library",
-    "license": "MIT",
-    "keywords": ["logging", "monolog", "stuzzo", "processor", "formatter"],
-    "require": {
-        "php": ">=5.5.9",
-        "monolog/monolog": "~1.22",
-        "symfony/http-foundation": "^3.2"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "~4.5"
-    },
-    "autoload": {
-        "psr-4": {"Stuzzo\\Monolog\\": "src/"}
-    },
-    "autoload-dev": {
+  "name": "stuzzo/monolog-extender",
+  "description": "Monolog wrapper that extends handlers and processors to add further informations",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "logging",
+    "monolog",
+    "stuzzo",
+    "processor",
+    "formatter"
+  ],
+  "require": {
+    "php": ">=5.5.9",
+    "monolog/monolog": "~1.22",
+    "symfony/http-foundation": "^3.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~4.5"
+  },
+  "autoload": {
     "psr-4": {
-        "Stuzzo\\Monolog\\Tests\\": "tests/"
-        }
-    },
-    "authors": [
-        {
-            "name": "Alfredo -stuzzo- Aiello",
-            "email": "stuzzo@gmail.com"
-        }
-    ]
+      "Stuzzo\\Monolog\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Stuzzo\\Monolog\\": "tests/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Alfredo -stuzzo- Aiello",
+      "email": "stuzzo@gmail.com"
+    }
+  ]
 }

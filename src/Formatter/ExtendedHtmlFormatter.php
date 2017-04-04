@@ -3,6 +3,7 @@
 namespace Stuzzo\Monolog\Formatter;
 
 use Monolog\Formatter\HtmlFormatter;
+use Stuzzo\Monolog\Service\ExecutionService;
 
 /**
  * Formats incoming records into an HTML table
@@ -41,45 +42,82 @@ class ExtendedHtmlFormatter extends HtmlFormatter
 	public function format(array $record)
 	{
 		/*
-		 * Se nel record non mi arriva l'eccezione, allora restituisco la versione base
-		 * del Formatter
+		 * The formatter is intented to log if the level is at least 'ERROR'
 		 */
-		if (empty($record['context'])) {
+		if ($record['level'] < 400) {
 			return parent::format($record);
 		}
 		
 		$output = $this->addTitle($record['level_name'], $record['level']);
 		$output .= '<table cellspacing="1" width="100%" class="monolog-output">';
 		
-		/** @var \Exception $currentException */
-		$currentException = reset($record['context']);
-		$extraFields      = !empty($record['extra']) ? $record['extra'] : [];
-		$headers          = !empty($record['headers']) ? $record['headers'] : [];
-		$files            = !empty($record['files']) ? $record['files'] : [];
-		$data             = !empty($record['data']) ? $record['data'] : [];
+		/** @var \Exception $exceptionRecord */
+		$exceptionRecord = ExecutionService::getExceptionFromRecord($record);
 		
-		$output .= $this->addRow('Message', (string) $currentException->getMessage());
+		$output .= $this->setMessage($record, $output, $exceptionRecord);
 		$output .= $this->addRow('Time', $record['datetime']->format($this->dateFormat));
 		$output .= $this->addRow('Channel', $record['channel']);
 		
-		$output .= $this->addRow('Exception', get_class($currentException));
+		if (false !== $exceptionRecord) {
+			$output .= $this->addRow('Exception', get_class($exceptionRecord));
+			$output .= $this->addExceptionStackTraceFormattedToMessage($exceptionRecord, $output);
+		}
+		
+		$output .= $this->addExtraFieldToMessage($record, $output);
+		$output .= $this->addRequestDataToMessage($record, $output);
+		$output .= $this->addRequestFilesToMessage($record, $output);
+		$output .= $this->addRequestHeadersToMessage($record, $output);
+		
+		return $output . '</table>';
+	}
+	
+	private function setMessage($record, $output, \Exception $exceptionRecord)
+	{
+		if (false === $exceptionRecord) {
+			$output .= $this->addRow('Message', (string) $exceptionRecord->getMessage());
+		} else {
+			$output .= $this->addRow('Message', $record['message']);
+		}
+		
+		return $output;
+	}
+	
+	private function addExceptionStackTraceFormattedToMessage(\Exception $currentException, $output)
+	{
+		$currentStackTrace = $currentException->getTrace();
+		if (empty($currentStackTrace)) {
+			$currentStackTrace = debug_backtrace();
+		}
+		
 		$traceMessage = '';
-		foreach ($currentException->getTrace() as $trace) {
+		foreach ($currentStackTrace as $trace) {
 			if (!empty($trace['file'])) {
-				$traceMessage .= sprintf('at %s line %s' . PHP_EOL, $trace['file'], $trace['line']);
+				$traceMessage .= sprintf('at %s line %s', $trace['file'], $trace['line']);
 			}
 		}
 		$output .= $this->addRow('Trace', $traceMessage);
 		
+		return $output;
+	}
+	
+	private function addExtraFieldToMessage($record, $output)
+	{
+		$extraFields = !empty($record['extra']) ? $record['extra'] : [];
 		if ($extraFields) {
 			$embeddedTable = '<table cellspacing="1" width="100%">';
 			foreach ($extraFields as $key => $value) {
 				$embeddedTable .= $this->addRow($this->formatKey($key), $this->convertToString($value));
 			}
 			$embeddedTable .= '</table>';
-			$output .= $this->addRow('Request', $embeddedTable, false);
+			$output        .= $this->addRow('Request', $embeddedTable, false);
 		}
 		
+		return $output;
+	}
+	
+	private function addRequestDataToMessage($record, $output)
+	{
+		$data = !empty($record['data']) ? $record['data'] : [];
 		if ($data) {
 			$embeddedTable = '<table cellspacing="1" width="100%">';
 			foreach ($data as $key => $value) {
@@ -89,9 +127,15 @@ class ExtendedHtmlFormatter extends HtmlFormatter
 				$embeddedTable .= $this->addRow($this->formatKey($key), $this->convertToString($value));
 			}
 			$embeddedTable .= '</table>';
-			$output .= $this->addRow('Data', $embeddedTable, false);
+			$output        .= $this->addRow('Data', $embeddedTable, false);
 		}
 		
+		return $output;
+	}
+	
+	private function addRequestFilesToMessage($record, $output)
+	{
+		$files = !empty($record['files']) ? $record['files'] : [];
 		if ($files) {
 			$embeddedTable = '<table cellspacing="1" width="100%">';
 			foreach ($files as $key => $value) {
@@ -101,9 +145,15 @@ class ExtendedHtmlFormatter extends HtmlFormatter
 				$embeddedTable .= $this->addRow($this->formatKey($key), $this->convertToString($value));
 			}
 			$embeddedTable .= '</table>';
-			$output .= $this->addRow('Files', $embeddedTable, false);
+			$output        .= $this->addRow('Files', $embeddedTable, false);
 		}
 		
+		return $output;
+	}
+	
+	private function addRequestHeadersToMessage($record, $output)
+	{
+		$headers = !empty($record['headers']) ? $record['headers'] : [];
 		if ($headers) {
 			$embeddedTable = '<table cellspacing="1" width="100%">';
 			foreach ($headers as $key => $value) {
@@ -113,10 +163,10 @@ class ExtendedHtmlFormatter extends HtmlFormatter
 				$embeddedTable .= $this->addRow($this->formatKey($key), $this->convertToString($value));
 			}
 			$embeddedTable .= '</table>';
-			$output .= $this->addRow('Headers', $embeddedTable, false);
+			$output        .= $this->addRow('Headers', $embeddedTable, false);
 		}
 		
-		return $output . '</table>';
+		return $output;
 	}
 	
 	protected function formatKey($key)
