@@ -44,15 +44,6 @@ class StreamFormatter extends LineFormatter
 		}
 		
 		return $output;
-<<<<<<< HEAD
-		
-=======
-	}
-	
-	private function addEndOfLine($string)
-	{
-		return $string . PHP_EOL;
->>>>>>> 4a8e5981f446313e95bb5473b08b51a0cd0a11e9
 	}
 	
 	private function addSpacesToString($string, $margin)

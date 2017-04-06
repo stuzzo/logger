@@ -1,12 +1,11 @@
 {
   "name": "stuzzo/monolog-extender",
-  "description": "Monolog wrapper that extends handlers and processors to add further informations",
+  "description": "Monolog wrapper that extends formatters and processors to add further informations",
   "type": "library",
   "license": "MIT",
   "keywords": [
     "logging",
     "monolog",
-    "stuzzo",
     "processor",
     "formatter"
   ],
@@ -26,6 +25,11 @@
   "autoload-dev": {
     "psr-4": {
       "Stuzzo\\Monolog\\": "tests/"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.0.*-dev"
     }
   },
   "authors": [
