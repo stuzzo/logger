@@ -57,6 +57,7 @@ class StreamFormatter extends LineFormatter
 		$exceptionRecord = ExecutionService::getExceptionFromRecord($record);
 		if (false === $exceptionRecord) {
 			$record['message'] = $this->addSpacesToString($record['message'], self::NO_MARGIN);
+			$record['exception'] = '';
 		} else {
 			$record['message']   = $this->addSpacesToString($exceptionRecord->getMessage(), self::NO_MARGIN);
 			$record['exception'] = $this->formatException($exceptionRecord);
