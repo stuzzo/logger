@@ -71,12 +71,10 @@ class StreamFormatter extends LineFormatter
 		/** @var \Exception $exceptionRecord */
 		$exceptionRecord = ExecutionService::getExceptionFromRecord($record);
 		if (false === $exceptionRecord) {
-			$message = $this->addSpacesToString(self::LOG_MESSAGE . ': ' . $record['message'], self::NO_MARGIN);
+			$record['message'] = $this->addSpacesToString($record['message'], self::NO_MARGIN);
 		} else {
-			$message = $this->addSpacesToString('PHP Exception: ', self::NO_MARGIN);
-			$message .= $this->addSpacesToString(get_class($exceptionRecord), self::MARGIN_2_SPACES);
-			$message .= $this->addSpacesToString('Message: ', self::NO_MARGIN);
-			$message .= $this->addSpacesToString($exceptionRecord->getMessage(), self::MARGIN_2_SPACES);
+			$record['message']   = $this->addSpacesToString($exceptionRecord->getMessage(), self::NO_MARGIN);
+			$record['exception'] = $this->formatException($exceptionRecord);
 		}
 		
 		if ($record['extra']) {
@@ -105,7 +103,7 @@ class StreamFormatter extends LineFormatter
 			$message = $this->addExceptionStackTraceFormattedToMessage($exceptionRecord, $message);
 		}
 		
-		return $message;
+		return $record;
 	}
 	
 	private function formatException(\Exception $exceptionRecord)
