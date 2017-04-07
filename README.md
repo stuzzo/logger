@@ -1,7 +1,7 @@
 # Monolog Extender - Extends Monolog handlers and processors
 
 [![Total Downloads](https://img.shields.io/packagist/dt/stuzzo/monolog-extender.svg)](https://packagist.org/packages/stuzzo/logger)
-[![Latest Stable Version](https://img.shields.io/packagist/v/stuzzo/logger.svg)](https://packagist.org/packages/stuzzo/logger)
+[![Latest Stable Version](https://img.shields.io/packagist/v/stuzzo/monolog-extender.svg)](https://packagist.org/packages/stuzzo/logger)
 
 Monolog sends your logs to files, sockets, inboxes, databases and various
 web services. [See the complete reference](https://github.com/Seldaek/monolog)
