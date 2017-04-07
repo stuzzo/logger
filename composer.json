@@ -37,5 +37,8 @@
       "name": "Alfredo -stuzzo- Aiello",
       "email": "stuzzo@gmail.com"
     }
-  ]
+  ],
+  "suggest": {
+    "stuzzo/monolog-extender-bundle": "Add monolog extender functionalities to Symfony"
+  }
 }

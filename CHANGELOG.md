@@ -1,3 +1,3 @@
-### 1.0.0-RC1 (2017-03-24)
+## 1.0.0 (2017-04-08)
 
-  * Initial release
+  * First Release
