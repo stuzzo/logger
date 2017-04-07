@@ -1,5 +1,3 @@
-This library is intended to interact when a message is at least at error level.
-
 # Using processor
 
 You can add a processor to an handler or to a logger.

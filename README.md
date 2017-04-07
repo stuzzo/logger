@@ -6,8 +6,8 @@
 Monolog sends your logs to files, sockets, inboxes, databases and various
 web services. [See the complete reference](https://github.com/Seldaek/monolog)
 
-This library extends some Monolog's handlers and processors adding some informations such as the data or the cookies 
-inside the request or the stack trace in a PHP script.
+This library extends Monolog's handlers and processors adding data to the record generated from processors.
+Furthermore the library improves logs format. 
 
 ## Installation
 

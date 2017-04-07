@@ -14,15 +14,21 @@ class StreamFormatter extends LineFormatter
 	const LOG_STACK_TRACE = 'STACK TRACE';
 	const LOG_DOUBLE_DOTS = ': ';
 	
+	public function __construct($format = null, $dateFormat = null, $allowInlineLineBreaks = false, $ignoreEmptyContextAndExtra = false)
+	{
+		parent::__construct($format, $dateFormat, $allowInlineLineBreaks, $ignoreEmptyContextAndExtra);
+		$this->includeStacktraces(true);
+	}
 	
 	public function format(array $record)
 	{
 		$record = $this->normalizeMessage($record);
-		$this->includeStacktraces(true);
 		
 		$output = parent::format($record);
 		$output = str_replace('%request%', $this->getRequestData($record), $output);
-		$output = $this->replaceNewlinesRemained($output);
+		if ($this->allowInlineLineBreaks) {
+			$output = $this->replaceNewlinesRemained($output);
+		}
 		
 		return $output;
 	}
@@ -47,17 +53,17 @@ class StreamFormatter extends LineFormatter
 	{
 		$message = $this->addSpacesToString('Request: ', self::NO_MARGIN);
 		
-		if ($record['extra']['url']) {
-			if ($record['extra']['http_method']) {
+		if (isset($record['extra'])) {
+			if (isset($record['extra']['http_method'])) {
 				$message .= $this->addSpacesToString('Method: ' . $record['extra']['http_method'], self::MARGIN_2_SPACES);
 			}
 			
-			if ($record['extra']['url']) {
+			if (isset($record['extra']['url'])) {
 				$message .= $this->addSpacesToString('URL: ' . $record['extra']['url'], self::MARGIN_2_SPACES);
 			}
 		}
 		
-		if ($record['headers']) {
+		if (isset($record['headers'])) {
 			$message .= $this->addSpacesToString('Headers: ', self::MARGIN_2_SPACES);
 			foreach ($record['headers'] as $key => $value) {
 				$value   = is_array($value) ? json_encode($value) : $value;
@@ -65,7 +71,7 @@ class StreamFormatter extends LineFormatter
 			}
 		}
 		
-		if ($record['data']) {
+		if (isset($record['data'])) {
 			$message .= $this->addSpacesToString('Data: ', self::MARGIN_2_SPACES);
 			foreach ($record['data'] as $key => $value) {
 				$value   = is_array($value) ? json_encode($value) : $value;
@@ -73,7 +79,7 @@ class StreamFormatter extends LineFormatter
 			}
 		}
 		
-		if ($record['files']) {
+		if (isset($record['files'])) {
 			$message .= $this->addSpacesToString('Files: ', self::MARGIN_2_SPACES);
 			foreach ($record['files'] as $key => $value) {
 				$value   = is_array($value) ? json_encode($value) : $value;
@@ -98,10 +104,13 @@ class StreamFormatter extends LineFormatter
 			} while ($previous = $previous->getPrevious());
 			$previousText = $this->removeCarriageReturn($previousText);
 		} else {
-			$previousText .= 'NONE' . "\n";
+			$previousText = '';
 		}
 		
-		$str = 'EXCEPTION: ' . get_class($e) . '(code: ' . $e->getCode() . '): ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine() . "\n" . $previousText;
+		$str = 'EXCEPTION: ' . get_class($e) . '(code: ' . $e->getCode() . '): ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine();
+		if ('' !== $previousText) {
+			$str .= "\n" . $previousText;
+		}
 		if ($this->includeStacktraces) {
 			$currentStackTrace = $e->getTrace();
 			if (empty($currentStackTrace)) {

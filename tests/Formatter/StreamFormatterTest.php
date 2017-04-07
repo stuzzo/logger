@@ -124,6 +124,7 @@ class StreamFormatterTest extends \PHPUnit_Framework_TestCase
 	public function testDefFormatWithException()
 	{
 		$formatter = new StreamFormatter(null, 'Y-m-d');
+		$formatter->includeStacktraces(false);
 		$message = $formatter->format(array(
 			                              'level_name' => 'CRITICAL',
 			                              'channel' => 'core',
@@ -135,12 +136,13 @@ class StreamFormatterTest extends \PHPUnit_Framework_TestCase
 		
 		$path = str_replace('\\/', '/', json_encode(__FILE__));
 		
-		$this->assertEquals('['.date('Y-m-d').'] core.CRITICAL: foobar {"exception":"[object] (RuntimeException(code: 0): Foo at '.substr($path, 1, -1).':'.(__LINE__ - 8).')"} []'."\n", $message);
+		$this->assertEquals('['.date('Y-m-d').'] core.CRITICAL: Foo {"exception":"EXCEPTION: RuntimeException(code: 0): Foo at '.substr($path, 1, -1).':'.(__LINE__ - 8).'"} []'."\n", $message);
 	}
 	
 	public function testDefFormatWithPreviousException()
 	{
 		$formatter = new StreamFormatter(null, 'Y-m-d');
+		$formatter->includeStacktraces(false);
 		$previous = new \LogicException('Wut?');
 		$message = $formatter->format(array(
 			                              'level_name' => 'CRITICAL',
@@ -153,7 +155,7 @@ class StreamFormatterTest extends \PHPUnit_Framework_TestCase
 		
 		$path = str_replace('\\/', '/', json_encode(__FILE__));
 		
-		$this->assertEquals('['.date('Y-m-d').'] core.CRITICAL: foobar {"exception":"[object] (RuntimeException(code: 0): Foo at '.substr($path, 1, -1).':'.(__LINE__ - 8).', LogicException(code: 0): Wut? at '.substr($path, 1, -1).':'.(__LINE__ - 12).')"} []'."\n", $message);
+		$this->assertEquals('['.date('Y-m-d').'] core.CRITICAL: Foo {"exception":"EXCEPTION: RuntimeException(code: 0): Foo at '.substr($path, 1, -1).':'.(__LINE__ - 8)."\n".'PREVIOUS EXCEPTION(S): LogicException(code: 0): Wut? at '.substr($path, 1, -1).':'.(__LINE__ - 12).'"} []'."\n", $message);
 	}
 	
 	public function testBatchFormat()
@@ -183,6 +185,7 @@ class StreamFormatterTest extends \PHPUnit_Framework_TestCase
 	public function testFormatShouldStripInlineLineBreaks()
 	{
 		$formatter = new StreamFormatter(null, 'Y-m-d');
+		$formatter->allowInlineLineBreaks(false);
 		$message = $formatter->format(
 			array(
 				'message' => "foo\nbar",
