@@ -41,32 +41,29 @@ class ExtendedHtmlFormatter extends HtmlFormatter
 	 */
 	public function format(array $record)
 	{
-		/*
-		 * The formatter is intented to log if the level is at least 'ERROR'
-		 */
-		if ($record['level'] < 400) {
-			return parent::format($record);
-		}
-		
 		$output = $this->addTitle($record['level_name'], $record['level']);
 		$output .= '<table cellspacing="1" width="100%" class="monolog-output">';
 		
-		/** @var \Exception $exceptionRecord */
-		$exceptionRecord = ExecutionService::getExceptionFromRecord($record);
-		
-		$output .= $this->setMessage($record, $output, $exceptionRecord);
 		$output .= $this->addRow('Time', $record['datetime']->format($this->dateFormat));
 		$output .= $this->addRow('Channel', $record['channel']);
 		
+		/** @var \Exception $exceptionRecord */
+		$exceptionRecord = ExecutionService::getExceptionFromRecord($record);
+		if (false === $exceptionRecord) {
+			$output .= $this->addRow('Message', $record['message']);
+		} else {
+			$output .= $this->addRow('Message', $exceptionRecord->getMessage());
+		}
+
 		if (false !== $exceptionRecord) {
 			$output .= $this->addRow('Exception', get_class($exceptionRecord));
-			$output .= $this->addExceptionStackTraceFormattedToMessage($exceptionRecord, $output);
+			$output .= $this->addExceptionStackTraceFormattedToMessage($exceptionRecord);
 		}
-		
-		$output .= $this->addExtraFieldToMessage($record, $output);
-		$output .= $this->addRequestDataToMessage($record, $output);
-		$output .= $this->addRequestFilesToMessage($record, $output);
-		$output .= $this->addRequestHeadersToMessage($record, $output);
+
+		$output .= $this->addFieldsToOutputBySection($record, 'extra', 'Request');
+		$output .= $this->addFieldsToOutputBySection($record, 'data', 'Data');
+		$output .= $this->addFieldsToOutputBySection($record, 'files', 'Files');
+		$output .= $this->addFieldsToOutputBySection($record, 'headers', 'Headers');
 		
 		return $output . '</table>';
 	}
@@ -82,8 +79,9 @@ class ExtendedHtmlFormatter extends HtmlFormatter
 		return $output;
 	}
 	
-	private function addExceptionStackTraceFormattedToMessage(\Exception $currentException, $output)
+	private function addExceptionStackTraceFormattedToMessage(\Exception $currentException)
 	{
+		$output = '';
 		$currentStackTrace = $currentException->getTrace();
 		if (empty($currentStackTrace)) {
 			$currentStackTrace = debug_backtrace();
@@ -92,7 +90,7 @@ class ExtendedHtmlFormatter extends HtmlFormatter
 		$traceMessage = '';
 		foreach ($currentStackTrace as $trace) {
 			if (!empty($trace['file'])) {
-				$traceMessage .= sprintf('at %s line %s', $trace['file'], $trace['line']);
+				$traceMessage .= sprintf('at %s line %s', $trace['file'], $trace['line']) . PHP_EOL;
 			}
 		}
 		$output .= $this->addRow('Trace', $traceMessage);
@@ -100,70 +98,17 @@ class ExtendedHtmlFormatter extends HtmlFormatter
 		return $output;
 	}
 	
-	private function addExtraFieldToMessage($record, $output)
+	private function addFieldsToOutputBySection($record, $section, $titleSection)
 	{
-		$extraFields = !empty($record['extra']) ? $record['extra'] : [];
+		$output = '';
+		$extraFields = !empty($record[$section]) ? $record[$section] : [];
 		if ($extraFields) {
 			$embeddedTable = '<table cellspacing="1" width="100%">';
 			foreach ($extraFields as $key => $value) {
 				$embeddedTable .= $this->addRow($this->formatKey($key), $this->convertToString($value));
 			}
 			$embeddedTable .= '</table>';
-			$output        .= $this->addRow('Request', $embeddedTable, false);
-		}
-		
-		return $output;
-	}
-	
-	private function addRequestDataToMessage($record, $output)
-	{
-		$data = !empty($record['data']) ? $record['data'] : [];
-		if ($data) {
-			$embeddedTable = '<table cellspacing="1" width="100%">';
-			foreach ($data as $key => $value) {
-				if (is_array($value) && 1 === count($value)) {
-					$value = reset($value);
-				}
-				$embeddedTable .= $this->addRow($this->formatKey($key), $this->convertToString($value));
-			}
-			$embeddedTable .= '</table>';
-			$output        .= $this->addRow('Data', $embeddedTable, false);
-		}
-		
-		return $output;
-	}
-	
-	private function addRequestFilesToMessage($record, $output)
-	{
-		$files = !empty($record['files']) ? $record['files'] : [];
-		if ($files) {
-			$embeddedTable = '<table cellspacing="1" width="100%">';
-			foreach ($files as $key => $value) {
-				if (is_array($value) && 1 === count($value)) {
-					$value = reset($value);
-				}
-				$embeddedTable .= $this->addRow($this->formatKey($key), $this->convertToString($value));
-			}
-			$embeddedTable .= '</table>';
-			$output        .= $this->addRow('Files', $embeddedTable, false);
-		}
-		
-		return $output;
-	}
-	
-	private function addRequestHeadersToMessage($record, $output)
-	{
-		$headers = !empty($record['headers']) ? $record['headers'] : [];
-		if ($headers) {
-			$embeddedTable = '<table cellspacing="1" width="100%">';
-			foreach ($headers as $key => $value) {
-				if (is_array($value) && 1 === count($value)) {
-					$value = reset($value);
-				}
-				$embeddedTable .= $this->addRow($this->formatKey($key), $this->convertToString($value));
-			}
-			$embeddedTable .= '</table>';
-			$output        .= $this->addRow('Headers', $embeddedTable, false);
+			$output        .= $this->addRow($titleSection, $embeddedTable, false);
 		}
 		
 		return $output;

@@ -14,31 +14,111 @@ class StreamFormatter extends LineFormatter
 	const LOG_STACK_TRACE = 'STACK TRACE';
 	const LOG_DOUBLE_DOTS = ': ';
 	
+	
 	public function format(array $record)
 	{
-		return $this->formatMessage($record);
+		$record = $this->normalizeMessage($record);
+		$this->includeStacktraces(true);
+		
+		$output = parent::format($record);
+		$output = str_replace('%request%', $this->getRequestData($record), $output);
+		$output = $this->replaceNewlinesRemained($output);
+		
+		return $output;
 	}
 	
-	protected function formatMessage(array $record)
+	protected function replaceNewlinesRemained($str)
 	{
-		$output = $this->format;
-		$this->allowInlineLineBreaks(true);
-		
-		$isGeneratedFromCommandLineInterface = $this->isGeneratedFromCommandLineInterface();
-		if ($isGeneratedFromCommandLineInterface) {
-			$record = $this->addCLIData($record);
-		} else {
-			$record = $this->addRequestData($record);
+		return str_replace(['\r', '\n'], ["\r", "\n"], $str);
+	}
+	
+	protected function normalizeMessage($record)
+	{
+		/** @var \Exception $exceptionRecord */
+		$exceptionRecord = ExecutionService::getExceptionFromRecord($record);
+		if (false !== $exceptionRecord) {
+			$record['message'] = $exceptionRecord->getMessage();
 		}
 		
-		$vars = $this->normalize($record);
-		foreach ($vars as $var => $val) {
-			if (false !== strpos($output, '%' . $var . '%')) {
-				$output = str_replace('%' . $var . '%', $this->stringify($val), $output);
+		return $record;
+	}
+	
+	protected function getRequestData($record)
+	{
+		$message = $this->addSpacesToString('Request: ', self::NO_MARGIN);
+		
+		if ($record['extra']['url']) {
+			if ($record['extra']['http_method']) {
+				$message .= $this->addSpacesToString('Method: ' . $record['extra']['http_method'], self::MARGIN_2_SPACES);
+			}
+			
+			if ($record['extra']['url']) {
+				$message .= $this->addSpacesToString('URL: ' . $record['extra']['url'], self::MARGIN_2_SPACES);
 			}
 		}
 		
-		return $output;
+		if ($record['headers']) {
+			$message .= $this->addSpacesToString('Headers: ', self::MARGIN_2_SPACES);
+			foreach ($record['headers'] as $key => $value) {
+				$value   = is_array($value) ? json_encode($value) : $value;
+				$message .= $this->addSpacesToString("$key: $value", self::MARGIN_4_SPACES);
+			}
+		}
+		
+		if ($record['data']) {
+			$message .= $this->addSpacesToString('Data: ', self::MARGIN_2_SPACES);
+			foreach ($record['data'] as $key => $value) {
+				$value   = is_array($value) ? json_encode($value) : $value;
+				$message .= $this->addSpacesToString("$key: $value", self::MARGIN_4_SPACES);
+			}
+		}
+		
+		if ($record['files']) {
+			$message .= $this->addSpacesToString('Files: ', self::MARGIN_2_SPACES);
+			foreach ($record['files'] as $key => $value) {
+				$value   = is_array($value) ? json_encode($value) : $value;
+				$message .= $this->addSpacesToString("$key: $value", self::MARGIN_4_SPACES);
+			}
+		}
+		
+		return $message;
+	}
+	
+	protected function normalizeException($e)
+	{
+		// TODO 2.0 only check for Throwable
+		if (!$e instanceof \Exception && !$e instanceof \Throwable) {
+			throw new \InvalidArgumentException('Exception/Throwable expected, got ' . gettype($e) . ' / ' . get_class($e));
+		}
+		
+		$previousText = 'PREVIOUS EXCEPTION(S): ';
+		if ($previous = $e->getPrevious()) {
+			do {
+				$previousText .= get_class($previous) . '(code: ' . $previous->getCode() . '): ' . $previous->getMessage() . ' at ' . $previous->getFile() . ':' . $previous->getLine() . "\n";
+			} while ($previous = $previous->getPrevious());
+			$previousText = $this->removeCarriageReturn($previousText);
+		} else {
+			$previousText .= 'NONE' . "\n";
+		}
+		
+		$str = 'EXCEPTION: ' . get_class($e) . '(code: ' . $e->getCode() . '): ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine() . "\n" . $previousText;
+		if ($this->includeStacktraces) {
+			$currentStackTrace = $e->getTrace();
+			if (empty($currentStackTrace)) {
+				$currentStackTrace = debug_backtrace();
+			}
+			
+			$str .= $this->addSpacesToString(self::LOG_STACK_TRACE . self::LOG_DOUBLE_DOTS, self::NO_MARGIN);
+			foreach ($currentStackTrace as $trace) {
+				if (!empty($trace['file'])) {
+					$traceMessage = sprintf('at %s line %s', $trace['file'], $trace['line']);
+					$str          .= $this->addSpacesToString($traceMessage, self::MARGIN_2_SPACES);
+				}
+			}
+			$str = $this->removeCarriageReturn($str);
+		}
+		
+		return $str;
 	}
 	
 	private function addSpacesToString($string, $margin)
@@ -46,96 +126,8 @@ class StreamFormatter extends LineFormatter
 		return str_repeat(' ', $margin) . $string . PHP_EOL;
 	}
 	
-	private function isGeneratedFromCommandLineInterface()
+	private function removeCarriageReturn($string)
 	{
-		return ExecutionService::isGeneratedFromCommandLineInterface();
+		return rtrim($string);
 	}
-	
-	private function addCLIData($record)
-	{
-		/** @var \Exception $exceptionRecord */
-		$exceptionRecord = ExecutionService::getExceptionFromRecord($record);
-		if (false === $exceptionRecord) {
-			$record['message'] = $this->addSpacesToString($record['message'], self::NO_MARGIN);
-			$record['exception'] = '';
-		} else {
-			$record['message']   = $this->addSpacesToString($exceptionRecord->getMessage(), self::NO_MARGIN);
-			$record['exception'] = $this->formatException($exceptionRecord);
-		}
-		
-		$record['extra'] = empty($record['extra']) ? '' : json_encode($record['extra']);
-		return $record;
-	}
-	
-	private function addRequestData($record)
-	{
-		/** @var \Exception $exceptionRecord */
-		$exceptionRecord = ExecutionService::getExceptionFromRecord($record);
-		if (false === $exceptionRecord) {
-			$record['message'] = $this->addSpacesToString($record['message'], self::NO_MARGIN);
-		} else {
-			$record['message']   = $this->addSpacesToString($exceptionRecord->getMessage(), self::NO_MARGIN);
-			$record['exception'] = $this->formatException($exceptionRecord);
-		}
-		
-		if ($record['extra']) {
-			$message .= $this->addSpacesToString('Request: ', self::NO_MARGIN);
-			$message .= $this->addSpacesToString('Method: ' . $record['extra']['http_method'], self::MARGIN_2_SPACES);
-			$message .= $this->addSpacesToString('URL: ' . $record['extra']['url'], self::MARGIN_2_SPACES);
-			
-			$message .= $this->addSpacesToString('Headers: ', self::MARGIN_2_SPACES);
-			foreach ($record['headers'] as $key => $value) {
-				$value   = is_array($value) ? json_encode($value) : $value;
-				$message .= $this->addSpacesToString("$key: $value", self::MARGIN_4_SPACES);
-			}
-			
-			$message .= $this->addSpacesToString('Data: ', self::MARGIN_2_SPACES);
-			foreach ($record['data'] as $key => $value) {
-				$value   = is_array($value) ? json_encode($value) : $value;
-				$message .= $this->addSpacesToString("$key: $value", self::MARGIN_4_SPACES);
-			}
-			
-			$message .= $this->addSpacesToString('Files: ', self::MARGIN_2_SPACES);
-			foreach ($record['files'] as $key => $value) {
-				$value   = is_array($value) ? json_encode($value) : $value;
-				$message .= $this->addSpacesToString("$key: $value", self::MARGIN_4_SPACES);
-			}
-			
-			$message = $this->addExceptionStackTraceFormattedToMessage($exceptionRecord, $message);
-		}
-		
-		return $record;
-	}
-	
-	private function formatException(\Exception $exceptionRecord)
-	{
-		if (null === $exceptionRecord) {
-			return '';
-		}
-		
-		$exceptionMessage           = $this->addSpacesToString(self::LOG_EXCEPTION . self::LOG_DOUBLE_DOTS . get_class($exceptionRecord),
-		                                                       self::NO_MARGIN);
-		$exceptionStackTraceMessage = $this->addExceptionStackTraceFormattedToMessage($exceptionRecord);
-		
-		return $exceptionMessage . $exceptionStackTraceMessage;
-	}
-	
-	private function addExceptionStackTraceFormattedToMessage(\Exception $currentException)
-	{
-		$currentStackTrace = $currentException->getTrace();
-		if (empty($currentStackTrace)) {
-			$currentStackTrace = debug_backtrace();
-		}
-		
-		$message = $this->addSpacesToString(self::LOG_STACK_TRACE . self::LOG_DOUBLE_DOTS, self::NO_MARGIN);
-		foreach ($currentStackTrace as $trace) {
-			if (!empty($trace['file'])) {
-				$traceMessage = sprintf('at %s line %s', $trace['file'], $trace['line']);
-				$message      .= $this->addSpacesToString($traceMessage, self::MARGIN_2_SPACES);
-			}
-		}
-		
-		return $message;
-	}
-	
 }
