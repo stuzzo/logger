@@ -30,7 +30,7 @@ class ExtendedWebProcessor extends WebProcessor
 	
 	protected function addRequestData($record)
 	{
-		$request = $GLOBALS['request'];
+		$request = isset($GLOBALS['request']) ? $GLOBALS['request'] : '';
 		if (empty($request)) {
 			return $record;
 		}
