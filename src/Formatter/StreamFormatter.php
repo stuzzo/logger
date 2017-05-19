@@ -122,7 +122,7 @@ class StreamFormatter extends LineFormatter
 				$currentStackTrace = debug_backtrace();
 			}
 			
-			$str .= $this->addSpacesToString(self::LOG_STACK_TRACE . self::LOG_DOUBLE_DOTS, self::NO_MARGIN);
+			$str .= "\n" . $this->addSpacesToString(self::LOG_STACK_TRACE . self::LOG_DOUBLE_DOTS, self::NO_MARGIN);
 			foreach ($currentStackTrace as $trace) {
 				if (!empty($trace['file'])) {
 					$traceMessage = sprintf('at %s line %s', $trace['file'], $trace['line']);
