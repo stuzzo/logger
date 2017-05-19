@@ -61,6 +61,11 @@ class StreamFormatter extends LineFormatter
 			if (isset($record['extra']['url'])) {
 				$message .= $this->addSpacesToString('URL: ' . $record['extra']['url'], self::MARGIN_2_SPACES);
 			}
+			
+			if (isset($record['extra']['user'])) {
+				$user = $record['extra']['user'];
+				$message .= $this->addSpacesToString('User: ' . $user['user'] . ' Roles: ' . json_encode($user['roles']), self::MARGIN_2_SPACES);
+			}
 		}
 		
 		if (isset($record['headers'])) {
