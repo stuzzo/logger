@@ -18,6 +18,7 @@ class ExtendedWebProcessor extends WebProcessor
 		parent::__construct($serverData, $extraFields);
 		$this->extraFields = array_merge($this->extraFields, [
 			'protocol' => 'REQUEST_SCHEME',
+			'server'   => 'SERVER_ADDR',
 		]);
 	}
 	
