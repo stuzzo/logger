@@ -136,7 +136,7 @@ class StreamFormatterTest extends \PHPUnit_Framework_TestCase
 		
 		$path = str_replace('\\/', '/', json_encode(__FILE__));
 		
-		$this->assertEquals('['.date('Y-m-d').'] core.CRITICAL: Foo {"exception":"EXCEPTION: RuntimeException(code: 0): Foo at '.substr($path, 1, -1).':'.(__LINE__ - 8).'"} []'."\n", $message);
+		$this->assertEquals('['.date('Y-m-d').'] core.CRITICAL: Foo {"exception":"EXCEPTION: RuntimeException(code: 0) at '.substr($path, 1, -1).' line '.(__LINE__ - 8).'"} []'."\n", $message);
 	}
 	
 	public function testDefFormatWithPreviousException()
@@ -155,7 +155,7 @@ class StreamFormatterTest extends \PHPUnit_Framework_TestCase
 		
 		$path = str_replace('\\/', '/', json_encode(__FILE__));
 		
-		$this->assertEquals('['.date('Y-m-d').'] core.CRITICAL: Foo {"exception":"EXCEPTION: RuntimeException(code: 0): Foo at '.substr($path, 1, -1).':'.(__LINE__ - 8)."\n".'PREVIOUS EXCEPTION(S): LogicException(code: 0): Wut? at '.substr($path, 1, -1).':'.(__LINE__ - 12).'"} []'."\n", $message);
+		$this->assertEquals('['.date('Y-m-d').'] core.CRITICAL: Foo {"exception":"EXCEPTION: RuntimeException(code: 0) at '.substr($path, 1, -1).' line '.(__LINE__ - 8)."\n".'PREVIOUS EXCEPTION(S): LogicException(code: 0) at '.substr($path, 1, -1).' line '.(__LINE__ - 12).'"} []'."\n", $message);
 	}
 	
 	public function testBatchFormat()

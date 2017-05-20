@@ -32,9 +32,10 @@ class SlackProcessor
 				'%s',
 				$val->getTraceAsString()
 			)];
+			
+			unset($record['context'][$key]);
 		}
 		
-		unset($record['context']);
 		return $record;
 	}
 	

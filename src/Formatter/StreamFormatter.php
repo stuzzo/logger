@@ -105,7 +105,7 @@ class StreamFormatter extends LineFormatter
 		$previousText = 'PREVIOUS EXCEPTION(S): ';
 		if ($previous = $e->getPrevious()) {
 			do {
-				$previousText .= get_class($previous) . '(code: ' . $previous->getCode() . ')  at ' . $previous->getFile() . ' line ' . $previous->getLine() . "\n";
+				$previousText .= get_class($previous) . '(code: ' . $previous->getCode() . ') at ' . $previous->getFile() . ' line ' . $previous->getLine() . "\n";
 			} while ($previous = $previous->getPrevious());
 			$previousText = $this->removeCarriageReturn($previousText);
 		} else {
