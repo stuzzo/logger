@@ -105,14 +105,14 @@ class StreamFormatter extends LineFormatter
 		$previousText = 'PREVIOUS EXCEPTION(S): ';
 		if ($previous = $e->getPrevious()) {
 			do {
-				$previousText .= get_class($previous) . '(code: ' . $previous->getCode() . '): ' . $previous->getMessage() . ' at ' . $previous->getFile() . ':' . $previous->getLine() . "\n";
+				$previousText .= get_class($previous) . '(code: ' . $previous->getCode() . ')  at ' . $previous->getFile() . ' line ' . $previous->getLine() . "\n";
 			} while ($previous = $previous->getPrevious());
 			$previousText = $this->removeCarriageReturn($previousText);
 		} else {
 			$previousText = '';
 		}
 		
-		$str = 'EXCEPTION: ' . get_class($e) . '(code: ' . $e->getCode() . '): ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine();
+		$str = 'EXCEPTION: ' . get_class($e) . '(code: ' . $e->getCode() . ') at ' . $e->getFile() . ' line ' . $e->getLine();
 		if ('' !== $previousText) {
 			$str .= "\n" . $previousText;
 		}
