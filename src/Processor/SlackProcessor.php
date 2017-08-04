@@ -17,19 +17,18 @@ class SlackProcessor
 			}
 			
 			$record['message'] = sprintf(
-				'Uncaught PHP Exception %s %s at %s line %s',
+				'Uncaught PHP Exception %s %s at %s line %s :scream:',
 				get_class($val),
 				$val->getMessage(),
 				$val->getFile(),
-				$val->getLine()
+				$val->getLine() . PHP_EOL
 			);
 			
-			$record['extra'] = ['Stack Trace' => sprintf(
-				'%s',
-				$val->getTraceAsString()
-			)];
+//			$record['extra'] = ['Stack Trace' => sprintf(
+//				'%s',
+//				$val->getTraceAsString()
+//			)];
 			
-			unset($record['context'][$key]);
 		}
 		
 		return $record;
