@@ -51,6 +51,13 @@ class StreamFormatter extends LineFormatter
 	
 	protected function getRequestData($record)
 	{
+	    if (count(array_intersect(['extra', 'headers', 'data', 'files'], $record)) === 0) {
+            /**
+             * No message from the request
+             */
+	        return '';
+        }
+        
 		$message = $this->addSpacesToString('Request: ', self::NO_MARGIN);
 		
 		if (isset($record['extra'])) {
