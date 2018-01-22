@@ -10,9 +10,8 @@
     "formatter"
   ],
   "require": {
-    "php": ">=7.1.3",
+    "php": "^7.0",
     "monolog/monolog": "^1.23",
-    "symfony/http-foundation": "^4.0.3"
   },
   "require-dev": {
     "phpunit/phpunit": "~4.5"
