@@ -51,7 +51,7 @@ class StreamFormatter extends LineFormatter
 	
 	protected function getRequestData($record)
 	{
-	    if (count(array_intersect(['extra', 'headers', 'data', 'files'], $record)) === 0) {
+	    if (count(array_intersect_key(['extra', 'headers', 'data', 'files'], $record)) === 0) {
             /**
              * No message from the request
              */
