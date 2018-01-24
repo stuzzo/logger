@@ -24,12 +24,14 @@ class SlackProcessor
 				$val->getLine() . PHP_EOL
 			);
 			
-//			$record['extra'] = ['Stack Trace' => sprintf(
-//				'%s',
-//				$val->getTraceAsString()
-//			)];
-			
+			if ('console' === $record['channel'] && !empty($record['context']['command'])) {
+                $record['extra'] = ['Command' => sprintf(
+                    '%s',
+                    $record['context']['command']
+                )];
+            }
 		}
+		$record['context'] = [];
 		
 		return $record;
 	}

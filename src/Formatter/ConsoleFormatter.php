@@ -5,7 +5,7 @@ namespace Stuzzo\Monolog\Formatter;
 use Monolog\Formatter\LineFormatter;
 use Stuzzo\Monolog\Service\ExecutionService;
 
-class StreamFormatter extends LineFormatter
+class ConsoleFormatter extends LineFormatter
 {
 	const NO_MARGIN       = 0;
 	const MARGIN_2_SPACES = 2;
@@ -25,7 +25,6 @@ class StreamFormatter extends LineFormatter
 		$record = $this->normalizeMessage($record);
 		
 		$output = parent::format($record);
-		$output = str_replace('%request%', $this->getRequestData($record), $output);
 		if ($this->allowInlineLineBreaks) {
 			$output = $this->replaceNewlinesRemained($output);
 		}
@@ -47,63 +46,6 @@ class StreamFormatter extends LineFormatter
 		}
 		
 		return $record;
-	}
-	
-	protected function getRequestData($record)
-	{
-	    $originalLength = count($record);
-	    if (\count(array_diff(array_keys($record), ['extra', 'headers', 'data', 'files'])) >= $originalLength) {
-            /**
-             * No data for request found, go on
-             */
-	        return '';
-        }
-        
-		$message = $this->addSpacesToString('Request: ', self::NO_MARGIN);
-		
-		if (isset($record['extra'])) {
-			if (isset($record['extra']['http_method'])) {
-				$message .= $this->addSpacesToString('Method: ' . $record['extra']['http_method'], self::MARGIN_2_SPACES);
-			}
-			
-			if (isset($record['extra']['url'])) {
-				$message .= $this->addSpacesToString('URL: ' . $record['extra']['url'], self::MARGIN_2_SPACES);
-			}
-			
-			if (isset($record['extra']['user'])) {
-				$message .= $this->addSpacesToString('User: ' . $record['extra']['user'], self::MARGIN_2_SPACES);
-			}
-            
-            if (isset($record['extra']['ip'])) {
-                $message .= $this->addSpacesToString('IP: ' . $record['extra']['ip'], self::MARGIN_2_SPACES);
-            }
-		}
-		
-		if (isset($record['headers'])) {
-			$message .= $this->addSpacesToString('Headers: ', self::MARGIN_2_SPACES);
-			foreach ($record['headers'] as $key => $value) {
-				$value   = is_array($value) ? json_encode($value) : $value;
-				$message .= $this->addSpacesToString("$key: $value", self::MARGIN_4_SPACES);
-			}
-		}
-		
-		if (isset($record['data'])) {
-			$message .= $this->addSpacesToString('Data: ', self::MARGIN_2_SPACES);
-			foreach ($record['data'] as $key => $value) {
-				$value   = is_array($value) ? json_encode($value) : $value;
-				$message .= $this->addSpacesToString("$key: $value", self::MARGIN_4_SPACES);
-			}
-		}
-		
-		if (isset($record['files'])) {
-			$message .= $this->addSpacesToString('Files: ', self::MARGIN_2_SPACES);
-			foreach ($record['files'] as $key => $value) {
-				$value   = is_array($value) ? json_encode($value) : $value;
-				$message .= $this->addSpacesToString("$key: $value", self::MARGIN_4_SPACES);
-			}
-		}
-		
-		return $message;
 	}
 	
 	protected function normalizeException($e)
